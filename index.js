@@ -61,6 +61,18 @@ module.exports = function(options) {
       if (!origin) {
         return next();
       }
+    } 
+    
+    // Check if the origin contains a comma seperated list of allowed domains
+    // Code is based on Dave Welsh' (@move-zig) comment here:
+    //    https://github.com/koajs/cors/issues/52#issuecomment-413887382
+    if (typeof options.origin === 'string' && options.origin.indexOf(',') > -1) {
+      const validDomains = options.origin.replace(/\s/g, '').split(',');
+      if (validDomains.indexOf(ctx.request.header.origin) !== -1) {
+        origin = ctx.request.header.origin;
+      } else {
+        origin = validDomains[0]; // we can't return void, so let's return one of the valid domains
+      }
     } else {
       origin = options.origin || requestOrigin;
     }
